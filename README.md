@@ -6,7 +6,8 @@
 
 - 상태: 초기 구성 중·미릴리스
 - 기획 영역: 로그인·회원 정보, AI 학습, 스터디 탐색·추천·연결, 내부 소통
-- 미정: 프론트 기술, AI 제공사·추천 방식, 댓글 또는 채팅 선택
+- 프론트 기술(제안): React 19 + TypeScript, Vite, React Router, Node.js 22 LTS + npm — [Front #1](https://github.com/DKU-RedBeanz/Web-1-Front/issues/1)에서 멘토 확인 중
+- 미정: AI 제공사·추천 방식, 댓글 또는 채팅 선택
 - 라이선스: [MIT](LICENSE)
 
 ## 역할 및 Sprint 1
@@ -19,7 +20,44 @@
 
 ## 실행 방법
 
-프론트 기술을 확정하고 기본 프로젝트를 구성한 뒤 런타임·패키지 관리자 버전, 설치·실행·빌드 명령을 추가합니다. 현재 실행 가능한 앱은 아직 없습니다.
+### 요구 버전
+
+| 항목 | 버전 |
+|---|---|
+| Node.js | 22 LTS (22.22.0 이상) |
+| npm | Node.js에 포함된 버전 사용 |
+| React | 19 |
+| Vite | 8 |
+| React Router | 8 |
+| TypeScript | 6 |
+
+`node -v`로 버전을 확인합니다. 22.22.0 미만이면 [Node.js 22 LTS](https://nodejs.org/)를 설치합니다.
+
+### 명령
+
+```bash
+git clone https://github.com/DKU-RedBeanz/Web-1-Front.git
+cd Web-1-Front
+npm install        # 의존성 설치 (package-lock.json 기준)
+npm run dev        # 개발 서버 실행 → http://localhost:5173
+npm run build      # 타입 검사 + 프로덕션 빌드 → dist/
+npm run preview    # 빌드 결과 확인 → http://localhost:4173
+npm run lint       # oxlint 검사
+```
+
+### 현재 화면
+
+샘플 데이터로 `스터디 조건 입력(/) → 추천 목록(/studies) → 스터디 상세(/studies/:id)` 흐름과 결과 없음 상태를 확인할 수 있습니다. 실제 백엔드·AI·로그인 연동은 없습니다. 화면별 필요한 정보와 백엔드 질문은 [docs/study-flow.md](docs/study-flow.md)에 정리했습니다.
+
+```text
+src/
+├── App.tsx               # 라우트 구성
+├── pages/                # 조건 입력·추천 목록·상세 화면
+├── components/           # 공통 UI (조건 배지)
+├── data/sampleStudies.ts # 샘플 스터디 데이터
+├── types/study.ts        # 스터디·조건 타입과 표시 라벨
+└── utils/recommend.ts    # 임시 추천(조건 일치 필터)
+```
 
 프론트 코드에는 AI API 비밀키나 DB 접속 정보를 넣지 않습니다.
 
