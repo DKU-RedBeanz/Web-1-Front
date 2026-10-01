@@ -1,24 +1,20 @@
 import { createContext, useContext } from 'react'
+import type { LoginRequest, SignupRequest, SignupResult, User } from '../types/user'
 
-export type Account = {
-  email: string
+// 프론트 샘플 계정: API 응답(User)에 비밀번호와 참여 스터디(별도 API 미정)를 더한 형태
+export type SampleAccount = User & {
   password: string
-  nickname: string
-  joinedAt: string
   studyIds: number[]
 }
 
-// 화면에 노출하는 사용자 정보에는 비밀번호를 포함하지 않습니다.
-export type User = Omit<Account, 'password'>
-
-export type SignupInput = Pick<Account, 'email' | 'password' | 'nickname'>
-
 export type AuthContextValue = {
   user: User | null
-  login: (email: string, password: string) => boolean
+  // 참여 중인 스터디는 /me 포함 여부가 미정이라 샘플 데이터에서만 제공합니다.
+  studyIds: number[]
+  login: (request: LoginRequest) => boolean
   logout: () => void
-  signup: (input: SignupInput) => 'ok' | 'duplicate-email'
-  findEmailByNickname: (nickname: string) => string | null
+  signup: (request: SignupRequest) => SignupResult
+  findLoginIdByEmail: (email: string) => string | null
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

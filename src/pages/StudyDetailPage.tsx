@@ -1,13 +1,19 @@
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router'
+import { useAuth } from '../auth/AuthContext'
 import StudyBadges from '../components/StudyBadges'
 import { SAMPLE_STUDIES } from '../data/sampleStudies'
 import { remainingSeats } from '../utils/recommend'
 
 export default function StudyDetailPage() {
+  const { user } = useAuth()
+  const location = useLocation()
   const { studyId } = useParams()
   const [searchParams] = useSearchParams()
   const study = SAMPLE_STUDIES.find((item) => String(item.id) === studyId)
   const backTo = `/studies?${searchParams}`
+
+  // 목록은 공개, 상세는 로그인 필요 (Back #9·#3 접근 정책). 로그인 후 이 상세로 돌아옵니다.
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
 
   if (!study) {
     return (

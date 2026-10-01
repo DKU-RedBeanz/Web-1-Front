@@ -5,7 +5,7 @@ import { SAMPLE_STUDIES } from '../data/sampleStudies'
 import { MODE_LABELS } from '../types/study'
 
 export default function MyPage() {
-  const { user, logout } = useAuth()
+  const { user, studyIds, logout } = useAuth()
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -14,7 +14,7 @@ export default function MyPage() {
   // 비로그인 접근은 로그인 화면으로 보냅니다. (인증 방식 확정 전 가정)
   if (!user) return <Navigate to="/login" replace state={{ from: '/mypage' }} />
 
-  const studies = SAMPLE_STUDIES.filter((study) => user.studyIds.includes(study.id))
+  const studies = SAMPLE_STUDIES.filter((study) => studyIds.includes(study.id))
 
   const handleLogout = () => {
     setLoggingOut(true)
@@ -33,16 +33,18 @@ export default function MyPage() {
           </span>
           <div>
             <p className="profile-name">{user.nickname}</p>
-            <p className="muted small">{user.email}</p>
+            <p className="muted small">@{user.loginId}</p>
           </div>
         </div>
         <dl className="detail-list">
+          <dt>아이디</dt>
+          <dd>{user.loginId}</dd>
           <dt>이메일</dt>
           <dd>{user.email}</dd>
           <dt>닉네임</dt>
           <dd>{user.nickname}</dd>
           <dt>가입일</dt>
-          <dd>{user.joinedAt}</dd>
+          <dd>{user.createdAt.slice(0, 10)}</dd>
         </dl>
       </div>
 
