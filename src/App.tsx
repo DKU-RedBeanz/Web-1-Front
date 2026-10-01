@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from 'react-router'
+import { Link, NavLink, Route, Routes } from 'react-router'
 import ConditionPage from './pages/ConditionPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import RecommendationListPage from './pages/RecommendationListPage'
@@ -20,12 +20,15 @@ export default function App() {
     <>
       <header className="header">
         <Link to="/" className="logo">
+          <span className="logo-mark" aria-hidden="true">
+            R
+          </span>
           RedBeanz
         </Link>
-        <nav className="chips">
-          <Link to="/studies">스터디 목록</Link>
-          <Link to="/login">로그인</Link>
-          <Link to="/mypage">마이페이지</Link>
+        <nav className="nav">
+          <NavLink to="/studies">스터디 목록</NavLink>
+          <NavLink to="/login">로그인</NavLink>
+          <NavLink to="/mypage">마이페이지</NavLink>
         </nav>
       </header>
       <main className="container">
