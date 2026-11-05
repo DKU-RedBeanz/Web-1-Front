@@ -32,6 +32,7 @@ function ConditionField({ name, legend, labels, value, onChange }: FieldProps) {
               checked={value === optionValue}
               onChange={() => onChange(name, optionValue)}
             />
+            {value === optionValue && '✓ '}
             {label}
           </label>
         ))}
@@ -65,7 +66,7 @@ export default function ConditionPage() {
         <ConditionField name="level" legend="내 수준" labels={LEVEL_LABELS} value={condition.level} onChange={handleChange} />
         <ConditionField name="time" legend="가능한 시간" labels={TIME_LABELS} value={condition.time} onChange={handleChange} />
         <ConditionField name="mode" legend="진행 방식" labels={MODE_LABELS} value={condition.mode} onChange={handleChange} />
-        <button type="submit" className="button primary">
+        <button type="submit" className="button primary block">
           추천 스터디 보기
         </button>
       </form>
