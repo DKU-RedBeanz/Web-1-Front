@@ -1,26 +1,28 @@
 # 백엔드 API 계약 정리 — Sprint 2
 
-[Web-1-Back](https://github.com/DKU-RedBeanz/Web-1-Back) 이슈에 올라온 **설계 초안**을 프론트 기준으로 정리했습니다. 멘토 확정 전이므로 계약이 바뀌면 이 문서와 `src/types/`를 함께 고칩니다. 현재 화면은 실제 API 대신 샘플 데이터로 같은 형태를 흉내 냅니다.
+[Web-1-Back](https://github.com/DKU-RedBeanz/Web-1-Back)의 API 계약을 프론트 기준으로 정리했습니다. 회원가입과 아이디 중복 검사는 백엔드 API를 호출하며, 로그인은 샘플 계정을 사용합니다.
 
 ## 회원·인증 (Back #7·#8)
 
 | 요청 | 기능 | 권한 | 응답 | 프론트 화면 |
 |---|---|---|---|---|
 | `POST /api/users` | 회원가입 | 공개 | 201 / 400 / 409(아이디·이메일 중복) | `/signup` |
-| `POST /api/auth/login` | 로그인 | 공개 | 200(내 정보) / 400 / 401 | `/login` |
-| `POST /api/auth/logout` | 로그아웃(세션 삭제) | 현재 세션 | 204 | `/mypage` 로그아웃 버튼 |
-| `GET /api/users/me` | 내 정보 | 로그인 필요 | 200 / 401 | `/mypage`, 헤더 로그인 상태 |
+| `GET /api/users/login-id-availability?loginId=redbeanz` | 아이디 중복 검사 | 공개 | 200 (`{ "available": true }` 또는 `{ "available": false }`) / 400 | `/signup` |
+| `GET /api/users/me` | 내 정보 | HTTP Basic | 200 / 401 | 연동 예정 |
+| `GET /api/users` | 회원 목록 | 관리자 | 200 / 401 / 403 | — |
+| `PATCH /api/users/me` | 내 정보 수정 | HTTP Basic, CSRF | 200 / 400 / 409 | — |
+| `DELETE /api/users/me` | 회원 탈퇴 | HTTP Basic, CSRF | 204 / 400 / 403 | — |
 
 ```json
 // 회원가입 요청 (role은 보내지 않음, 서버가 USER로 저장)
 { "loginId": "redbeanz", "email": "study@redbeanz.kr", "password": "********", "nickname": "팥빙수" }
-// 로그인 요청
-{ "loginId": "redbeanz", "password": "********" }
-// 로그인·내 정보 응답 (비밀번호·해시 없음)
+// 회원 정보 응답 (비밀번호·해시 없음)
 { "id": 1, "loginId": "redbeanz", "email": "study@redbeanz.kr", "nickname": "팥빙수", "role": "USER", "createdAt": "2026-09-24T12:00:00" }
 ```
 
 타입: [src/types/user.ts](../src/types/user.ts)
+
+로컬에서는 백엔드의 `db/01_create_users.sql`을 MySQL에 적용한 뒤 8080 포트에서 백엔드를 실행합니다. `npm run dev`로 띄운 Vite는 `/api` 요청을 백엔드로 전달합니다. 배포 환경에서도 같은 경로를 백엔드에 연결해야 합니다.
 
 ### 입력 규칙 (프론트 검사 = 서버 400 기준)
 
@@ -28,11 +30,10 @@
 |---|---|---|---|
 | 아이디 `loginId` | 영문 소문자·숫자 4~20자 | 불가 (409) | "아이디는 영문 소문자·숫자 4~20자로 입력하세요." / "이미 사용 중인 아이디입니다." |
 | 이메일 `email` | 이메일 형식, 100자 이하 | 불가 (409) | "올바른 이메일 형식이 아닙니다." / "이미 가입된 이메일입니다." |
-| 비밀번호 `password` | 8~64자 | — | "비밀번호는 8~64자로 입력하세요." |
+| 비밀번호 `password` | 8~64자, UTF-8 기준 72바이트 이하, 공백만 입력 불가 | — | "비밀번호는 8~64자로 입력하세요." |
 | 닉네임 `nickname` | 2~20자 | 허용 | "닉네임은 2~20자로 입력하세요." |
 
-- 로그인 실패(401)는 아이디·비밀번호 중 무엇이 틀렸는지 구분하지 않고 "아이디 또는 비밀번호가 올바르지 않습니다."로 안내합니다.
-- 인증 방식은 **세션(JSESSIONID 쿠키)** 이 제안되어 있습니다. 연결 시 `fetch(..., { credentials: 'include' })`와 CSRF 토큰 전달이 필요합니다.
+- 보호된 회원 API는 HTTP Basic 인증을 사용합니다. 정보 수정과 탈퇴에는 내 정보 조회에서 받은 `JSESSIONID` 쿠키와 `X-CSRF-TOKEN` 헤더를 함께 보냅니다.
 
 ## 스터디 조회 (Back #9)
 
@@ -49,8 +50,7 @@
 
 | 항목 | 이슈 | 프론트 영향 |
 |---|---|---|
-| 아이디·이메일 분리, 닉네임 중복 허용, 비밀번호 8~64자 확정 | Back #7 | 회원가입 검사 규칙 |
-| 세션 방식 확정, CORS vs Vite 프록시, CSRF 토큰 전달 | Back #8 | API 호출 설정 |
+| 로그인·로그아웃 API 일정 | Back #8 | `/login`, 헤더 로그인 상태 (현재 샘플) |
 | 조건 enum 코드 값, 페이지네이션 여부 | Back #9 | 조건 타입·URL 쿼리, 목록 화면 |
 | 참여 중인 스터디를 `/me`에 포함할지, 별도 API인지 | — | 마이페이지 (현재 샘플) |
 | 아이디 찾기·비밀번호 재설정 API 일정 | Back #7·#8 제외 범위 | `/find-id`, `/reset-password` (현재 샘플) |
