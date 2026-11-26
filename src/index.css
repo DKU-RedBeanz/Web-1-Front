@@ -442,6 +442,17 @@ a {
   padding: var(--space-6);
 }
 
+.signup-fields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.signup-fields > .button[type='button'] {
+  margin-bottom: var(--space-4);
+}
+
 .auth-card > .muted {
   margin: 0 0 var(--space-5);
 }

@@ -11,7 +11,8 @@ export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const state = useLocation().state as LoginLocationState
-  const [failed, setFailed] = useState(false)
+  const [error, setError] = useState('')
+  const [pending, setPending] = useState(false)
 
   // 로그인은 필수값만 확인합니다. 형식 검사는 회원가입에서만 합니다.
   const { values, validateAll, field } = useForm({ loginId: state?.loginId ?? '', password: '' }, (v) => ({
@@ -19,16 +20,20 @@ export default function LoginPage() {
     password: v.password ? undefined : '비밀번호를 입력하세요.',
   }))
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setFailed(false)
+    if (pending) return
+    setError('')
     if (!validateAll()) return
-    if (!login({ loginId: values.loginId, password: values.password })) {
-      // 401: 아이디·비밀번호 중 무엇이 틀렸는지 알리지 않습니다.
-      setFailed(true)
-      return
+    setPending(true)
+    try {
+      await login({ loginId: values.loginId, password: values.password })
+      navigate(state?.from ?? '/', { replace: true })
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '로그인에 실패했습니다.')
+    } finally {
+      setPending(false)
     }
-    navigate(state?.from ?? '/', { replace: true })
   }
 
   return (
@@ -36,20 +41,22 @@ export default function LoginPage() {
       <h1>로그인</h1>
       <p className="muted small">RedBeanz 계정으로 로그인하세요.</p>
 
-      {failed && <Notice variant="error">아이디 또는 비밀번호가 올바르지 않습니다.</Notice>}
+      {error && <Notice variant="error">{error}</Notice>}
 
       <form noValidate onSubmit={handleSubmit}>
-        <TextField {...field('loginId')} label="아이디" placeholder="아이디를 입력하세요" autoComplete="username" />
-        <TextField
-          {...field('password')}
-          label="비밀번호"
-          type="password"
-          placeholder="비밀번호를 입력하세요"
-          autoComplete="current-password"
-        />
-        <button type="submit" className="button primary block">
-          로그인
-        </button>
+        <fieldset className="signup-fields" disabled={pending}>
+          <TextField {...field('loginId')} label="아이디" placeholder="아이디를 입력하세요" autoComplete="username" />
+          <TextField
+            {...field('password')}
+            label="비밀번호"
+            type="password"
+            placeholder="비밀번호를 입력하세요"
+            autoComplete="current-password"
+          />
+          <button type="submit" className="button primary block">
+            {pending ? '로그인 중…' : '로그인'}
+          </button>
+        </fieldset>
       </form>
 
       <nav className="auth-links" aria-label="계정 관련 이동">

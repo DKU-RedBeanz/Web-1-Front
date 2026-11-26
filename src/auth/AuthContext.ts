@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { LoginRequest, SignupRequest, SignupResult, User } from '../types/user'
+import type { LoginRequest, UpdateUserRequest, User } from '../types/user'
 
 // 프론트 샘플 계정: API 응답(User)에 비밀번호와 참여 스터디(별도 API 미정)를 더한 형태
 export type SampleAccount = User & {
@@ -9,12 +9,10 @@ export type SampleAccount = User & {
 
 export type AuthContextValue = {
   user: User | null
-  // 참여 중인 스터디는 /me 포함 여부가 미정이라 샘플 데이터에서만 제공합니다.
-  studyIds: number[]
-  login: (request: LoginRequest) => boolean
+  login: (request: LoginRequest) => Promise<void>
   logout: () => void
-  signup: (request: SignupRequest) => SignupResult
-  findLoginIdByEmail: (email: string) => string | null
+  update: (request: UpdateUserRequest) => Promise<void>
+  deleteAccount: (password: string) => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
