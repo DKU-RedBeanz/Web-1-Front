@@ -1,53 +1,54 @@
-import { useState, type ReactNode } from 'react'
-import { SAMPLE_ACCOUNT } from '../data/sampleUser'
-import type { User } from '../types/user'
-import { AuthContext, type AuthContextValue, type SampleAccount } from './AuthContext'
+import { useRef, useState, type ReactNode } from 'react'
+import { deleteMe, getMe, updateMe, UserApiError } from '../api/users'
+import type { LoginRequest, User } from '../types/user'
+import { AuthContext, type AuthContextValue } from './AuthContext'
 
-const STORAGE_KEY = 'redbeanz:login-id'
-
-function toUser({ password: _password, studyIds: _studyIds, ...user }: SampleAccount): User {
-  return user
-}
-
-function readStoredLoginId(): string | null {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY)
-  } catch {
-    return null
-  }
-}
-
-function writeStoredLoginId(loginId: string | null) {
-  try {
-    if (loginId) sessionStorage.setItem(STORAGE_KEY, loginId)
-    else sessionStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // 저장소를 쓸 수 없어도 화면 상태로는 동작합니다.
-  }
-}
-
-// 임시 로그인 상태: 샘플 계정을 사용합니다.
-// 새로고침해도 로그인이 유지되도록 로그인한 아이디만 sessionStorage에 둡니다.
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [loginId, setLoginId] = useState<string | null>(readStoredLoginId)
+  const [user, setUser] = useState<User | null>(null)
+  // 현재 백엔드의 Basic 인증에 맞춥니다. 비밀번호는 브라우저 저장소에 저장하지 않습니다.
+  const credentials = useRef<LoginRequest | null>(null)
 
-  const account = SAMPLE_ACCOUNT.loginId === loginId ? SAMPLE_ACCOUNT : null
+  const logout = () => {
+    credentials.current = null
+    setUser(null)
+  }
+
+  const requireCredentials = () => {
+    if (!credentials.current) throw new Error('다시 로그인해 주세요.')
+    return credentials.current
+  }
+
+  const handleError = (error: unknown): never => {
+    if (error instanceof UserApiError && (error.status === 401 || error.status === 404)) logout()
+    throw error
+  }
 
   const value: AuthContextValue = {
-    user: account ? toUser(account) : null,
-    studyIds: account?.studyIds ?? [],
-    login(request) {
-      if (SAMPLE_ACCOUNT.loginId !== request.loginId || SAMPLE_ACCOUNT.password !== request.password) return false
-      setLoginId(request.loginId)
-      writeStoredLoginId(request.loginId)
-      return true
+    user,
+    async login(request) {
+      const account = await getMe(request)
+      credentials.current = { ...request }
+      setUser(account)
     },
-    logout() {
-      setLoginId(null)
-      writeStoredLoginId(null)
+    logout,
+    async update(request) {
+      const current = requireCredentials()
+      try {
+        const account = await updateMe(current, request)
+        if (request.password) credentials.current = { ...current, password: request.password }
+        setUser(account)
+      } catch (error) {
+        handleError(error)
+      }
     },
-    findLoginIdByEmail(email) {
-      return SAMPLE_ACCOUNT.email === email ? SAMPLE_ACCOUNT.loginId : null
+    async deleteAccount(password) {
+      const current = requireCredentials()
+      if (!user) throw new Error('다시 로그인해 주세요.')
+      try {
+        await deleteMe(current, user.id, password)
+      } catch (error) {
+        handleError(error)
+      }
     },
   }
 

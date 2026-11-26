@@ -1,6 +1,6 @@
 # 백엔드 API 계약 정리 — Sprint 2
 
-[Web-1-Back](https://github.com/DKU-RedBeanz/Web-1-Back)의 API 계약을 프론트 기준으로 정리했습니다. 회원가입과 아이디 중복 검사는 백엔드 API를 호출하며, 로그인은 샘플 계정을 사용합니다.
+[Web-1-Back](https://github.com/DKU-RedBeanz/Web-1-Back)의 API 계약을 프론트 기준으로 정리했습니다. 회원가입·아이디 중복 검사·로그인·내 정보 조회·수정·탈퇴는 실제 회원 API를 호출합니다.
 
 ## 회원·인증 (Back #7·#8)
 
@@ -8,10 +8,10 @@
 |---|---|---|---|---|
 | `POST /api/users` | 회원가입 | 공개 | 201 / 400 / 409(아이디·이메일 중복) | `/signup` |
 | `GET /api/users/login-id-availability?loginId=redbeanz` | 아이디 중복 검사 | 공개 | 200 (`{ "available": true }` 또는 `{ "available": false }`) / 400 | `/signup` |
-| `GET /api/users/me` | 내 정보 | HTTP Basic | 200 / 401 | 연동 예정 |
+| `GET /api/users/me` | 로그인·내 정보 | HTTP Basic | 200 / 401 | `/login`, `/mypage` |
 | `GET /api/users` | 회원 목록 | 관리자 | 200 / 401 / 403 | — |
-| `PATCH /api/users/me` | 내 정보 수정 | HTTP Basic, CSRF | 200 / 400 / 409 | — |
-| `DELETE /api/users/me` | 회원 탈퇴 | HTTP Basic, CSRF | 204 / 400 / 403 | — |
+| `PATCH /api/users/me` | 내 정보 수정 | HTTP Basic, CSRF | 200 / 400 / 409 | `/mypage` |
+| `DELETE /api/users/me` | 회원 탈퇴 | HTTP Basic, CSRF | 204 / 400 / 403 | `/mypage` |
 
 ```json
 // 회원가입 요청 (role은 보내지 않음, 서버가 USER로 저장)
@@ -34,6 +34,7 @@
 | 닉네임 `nickname` | 2~20자 | 허용 | "닉네임은 2~20자로 입력하세요." |
 
 - 보호된 회원 API는 HTTP Basic 인증을 사용합니다. 정보 수정과 탈퇴에는 내 정보 조회에서 받은 `JSESSIONID` 쿠키와 `X-CSRF-TOKEN` 헤더를 함께 보냅니다.
+- 인증 정보는 메모리에만 두므로 새로고침하면 다시 로그인합니다. 로그아웃은 메모리의 인증 정보와 사용자 상태를 지웁니다. 비밀번호 수정 후에는 변경된 비밀번호로 후속 요청을 인증합니다.
 
 ## 스터디 조회 (Back #9)
 
@@ -50,7 +51,7 @@
 
 | 항목 | 이슈 | 프론트 영향 |
 |---|---|---|
-| 로그인·로그아웃 API 일정 | Back #8 | `/login`, 헤더 로그인 상태 (현재 샘플) |
+| 세션 로그인·로그아웃 API 일정 | Back #8 | 현재 HTTP Basic으로 연동, 세션 계약 확정 시 교체 |
 | 조건 enum 코드 값, 페이지네이션 여부 | Back #9 | 조건 타입·URL 쿼리, 목록 화면 |
 | 참여 중인 스터디를 `/me`에 포함할지, 별도 API인지 | — | 마이페이지 (현재 샘플) |
 | 아이디 찾기·비밀번호 재설정 API 일정 | Back #7·#8 제외 범위 | `/find-id`, `/reset-password` (현재 샘플) |

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { useAuth } from '../auth/AuthContext'
+import { SAMPLE_ACCOUNT } from '../data/sampleUser'
 import Notice from '../components/Notice'
 import TextField from '../components/TextField'
 import { useForm } from '../hooks/useForm'
@@ -8,7 +8,6 @@ import { maskLoginId, validateEmail } from '../utils/validation'
 
 // 이메일은 중복 불가(Back #7)라 이메일로 아이디를 찾습니다. 실제 조회 API는 아직 범위 밖이라 샘플 계정에서 찾습니다.
 export default function FindIdPage() {
-  const { findLoginIdByEmail } = useAuth()
   const [result, setResult] = useState<string | null | undefined>(undefined)
 
   const { values, validateAll, field } = useForm({ email: '' }, (v) => ({ email: validateEmail(v.email) }))
@@ -19,13 +18,13 @@ export default function FindIdPage() {
       setResult(undefined)
       return
     }
-    setResult(findLoginIdByEmail(values.email.trim()))
+    setResult(SAMPLE_ACCOUNT.email === values.email.trim() ? SAMPLE_ACCOUNT.loginId : null)
   }
 
   return (
     <section className="card auth-card">
       <h1>아이디 찾기</h1>
-      <p className="muted small">가입할 때 입력한 이메일로 아이디를 찾아요.</p>
+      <p className="muted small">가입할 때 입력한 이메일로 아이디를 찾아요. (샘플 화면)</p>
 
       <form noValidate onSubmit={handleSubmit}>
         <TextField {...field('email')} label="이메일" type="email" placeholder="study@redbeanz.kr" autoComplete="email" />

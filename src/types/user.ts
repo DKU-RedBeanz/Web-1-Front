@@ -16,7 +16,13 @@ export type SignupRequest = {
   nickname: string
 }
 
-// 샘플 계정 로그인 입력
+export type UpdateUserRequest = {
+  email?: string
+  nickname?: string
+  password?: string
+}
+
+// HTTP Basic 인증 입력
 export type LoginRequest = {
   loginId: string
   password: string
